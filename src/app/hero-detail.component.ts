@@ -1,23 +1,37 @@
 // this file holds the HeroDetailComponent --sub component of AppComponent
-import { Component, Input } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
+import { ActivatedRoute, ParamMap } from '@angular/router';
+import { Location} from '@angular/common'
 import { Hero } from './hero';
-
+import { HeroService} from './hero.service';
+import 'rxjs/add/operator/switchMap';
 
 
 @Component({
   selector: 'hero-detail',
-
-  template: `
-    <div *ngIf = "hero">
-      <h2>{{hero.name}} details!</h2>
-      <div><label>id: </label>{{hero.id}}</div>
-      <div>
-        <input [(ngModel)]="hero.name" placeholder="name">
-      </div>
-    </div>
-    `,
+ templateUrl: './hero-detail.component.html'
 })
 
-export class HeroDetailComponent {
+export class HeroDetailComponent implements OnInit {
   @Input() hero: Hero;
+
+  constructor(
+    private heroSerivce: HeroService,
+    private router: ActivatedRoute,
+    private location: Location,
+  ){}
+
+  ngOnInit(): void {
+    this.router.paramMap
+      .switchMap( (params:ParamMap) => this.heroSerivce.getHero(+params.get('id')))
+      .subscribe(hero => this.hero = hero);
+  }
+
+  goBack(): void{
+    this.location.back();
+  }
+
+  save(): void{
+    this.heroSerivce.update(this.hero).then( ()=>this.goBack());
+  }
 }
